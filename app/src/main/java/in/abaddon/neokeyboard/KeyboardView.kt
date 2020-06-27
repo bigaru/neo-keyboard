@@ -124,9 +124,15 @@ class KeyboardView(val ctx: Context, val ic: () -> InputConnection): RenderableV
             minHeight(0)
             minWidth(0)
 
-            background(ctx.getDrawable(R.drawable.key_style))
-            padding(dip(6), dip(12) )
-            textSize(sip(22f))
+            when(key) {
+                is SPACE -> background(ctx.getDrawable(R.drawable.bordered_key))
+                is CHAR -> background(ctx.getDrawable(R.drawable.bordered_key))
+                else -> background(ctx.getDrawable(R.drawable.borderless_key))
+            }
+
+            textColor(ctx.getColor(R.color.white))
+            padding(dip(6), dip(10) )
+            textSize(sip(24f))
 
             allCaps(false)
             typeface(ResourcesCompat.getFont(ctx, R.font.lin_biolinum_rah))
