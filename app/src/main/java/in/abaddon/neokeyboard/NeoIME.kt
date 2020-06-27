@@ -6,6 +6,6 @@ import android.view.View
 class NeoIME : InputMethodService() {
 
     override fun onCreateInputView(): View {
-        return KeyboardView(this, currentInputConnection)
+        return KeyboardView(this, {currentInputConnection})
     }
 }

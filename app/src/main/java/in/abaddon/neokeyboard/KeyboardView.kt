@@ -66,7 +66,7 @@ data class State(
     fun isLayer6() = !shift.first && modifier3.first && modifier4.first
 }
 
-class KeyboardView(val ctx: Context, val ic: InputConnection): RenderableView(ctx) {
+class KeyboardView(val ctx: Context, val ic: () -> InputConnection): RenderableView(ctx) {
     var state = State(Pair(false, false), Pair(false, false), Pair(false, false))
 
     fun resetNonPermas(){
@@ -78,17 +78,17 @@ class KeyboardView(val ctx: Context, val ic: InputConnection): RenderableView(ct
     fun onKeyClick(key: KeyType) {
         when(key) {
             is CHAR -> {
-                ic.commitText(key.char.toString(), 1)
+                ic().commitText(key.char.toString(), 1)
                 resetNonPermas()
             }
 
             is SPACE -> {
-                ic.commitText(" ", 1)
+                ic().commitText(" ", 1)
                 resetNonPermas()
             }
 
             is BACKSPACE -> {
-                ic.deleteSurroundingText(1, 0)
+                ic().deleteSurroundingText(1, 0)
                 resetNonPermas()
             }
 
