@@ -6,25 +6,99 @@ import androidx.core.content.res.ResourcesCompat
 import trikita.anvil.DSL.*
 import trikita.anvil.RenderableView
 
+sealed class KeyType
+data class CHAR(val char: Char): KeyType()
+object SHIFT: KeyType()
+object M3: KeyType()
+object M4: KeyType()
+object SPACE: KeyType()
+object BACKSPACE: KeyType()
+object ENTER: KeyType()
+
+/*
+'1',  '2',  '3',  '4',  '5',        '6',  '7',  '8',  '9',  '0',  '-'
+'x',  'v',  'l',  'c',  'w',        'k',  'h',  'g',  'f',  'q',  'ß'
+'u',  'i',  'a',  'e',  'o',        's',  'n',  'r',  't',  'd',  'y'
+'ü',  'ö',  'ä',  'p',  'z',       'b',  'm',  ',',  '.',  'j'    <--
+SHIFT M3              SPACE   M4  ENTER
+*/
+
 object Keys {
-    val layer1 = listOf(
-        listOf('1',  '2',  '3',  '4',  '5',  '6',  '7',  '8',  '9',  '0',  '-'),
-        listOf('x',  'v',  'l',  'c',  'w',  'k',  'h',  'g',  'f',  'q',  'ß'),
-        listOf('u',  'i',  'a',  'e',  'o',  's',  'n',  'r',  't',  'd',  'y'),
-        listOf('ü',  'ö',  'ä',  'p',  'z',  'b',  'm',  ',',  '.',  'j')
+    val layer1: List<List<KeyType>> = listOf(
+        listOf('1',  '2',  '3',  '4',  '5',  '6',  '7',  '8',  '9',  '0',  '-').map{CHAR(it)},
+        listOf('x',  'v',  'l',  'c',  'w',  'k',  'h',  'g',  'f',  'q',  'ß').map{CHAR(it)},
+        listOf('u',  'i',  'a',  'e',  'o',  's',  'n',  'r',  't',  'd',  'y').map{CHAR(it)},
+        listOf('ü',  'ö',  'ä',  'p',  'z',  'b',  'm',  ',',  '.',  'j').map{CHAR(it)} + listOf(BACKSPACE),
+        listOf(SHIFT, M3, SPACE , M4, ENTER)
+    )
+
+    val layer2: List<List<KeyType>> = listOf(
+        listOf('°',  '§',  'ℓ',  '»',  '«',  '$',  '€',  '„',  '“',  '”',  '—').map{CHAR(it)},
+        listOf('X',  'V',  'L',  'C',  'W',  'K',  'H',  'G',  'F',  'Q',  'ẞ').map{CHAR(it)},
+        listOf('U',  'I',  'A',  'E',  'O',  'S',  'N',  'R',  'T',  'D',  'Y').map{CHAR(it)},
+        listOf('Ü',  'Ö',  'Ä',  'P',  'Z',  'B',  'M',  '–',  '•',  'J').map{CHAR(it)} + listOf(BACKSPACE),
+        listOf(SHIFT, M3, SPACE , M4, ENTER)
     )
 }
 
-class KeyboardView(val ctx: Context, val enterChar:(Char) -> Unit): RenderableView(ctx) {
+data class State(
+                      // isActive, isPerma
+    val shift: Pair<Boolean, Boolean>,
+    val modifier3: Pair<Boolean, Boolean>,
+    val modifier4: Pair<Boolean, Boolean>
+){
+    fun isLayer1() = !shift.first && !modifier3.first && !modifier4.first
+    fun isLayer2() = shift.first && !modifier3.first && !modifier4.first
+    fun isLayer3() = !shift.first && modifier3.first && !modifier4.first
+    fun isLayer4() = !shift.first && !modifier3.first && modifier4.first
+    fun isLayer5() = shift.first && modifier3.first && !modifier4.first
+    fun isLayer6() = !shift.first && modifier3.first && modifier4.first
+}
 
-    fun onKeyClick(c: Char) {
-        enterChar(c)
+class KeyboardView(val ctx: Context, val enterChar:(Char) -> Unit): RenderableView(ctx) {
+    var state = State(Pair(false, false), Pair(false, false), Pair(false, false))
+
+    fun resetNonPermas(){
+        if (!state.shift.second) state = state.copy(shift = Pair(false, false))
+        if (!state.modifier3.second) state = state.copy(modifier3 = Pair(false, false))
+        if (!state.modifier4.second) state = state.copy(modifier4 = Pair(false, false))
     }
 
-    private fun styledKey(content: Char) =
+    fun onKeyClick(key: KeyType) {
+        when(key) {
+            is CHAR -> {
+                enterChar(key.char)
+                resetNonPermas()
+            }
+
+            is SPACE -> {
+                enterChar(' ')
+                resetNonPermas()
+            }
+
+            is SHIFT ->
+                state = state.copy(shift = Pair(true, false))
+        }
+    }
+
+    private fun textBasedOnType(key: KeyType) = when(key) {
+        is CHAR -> text(key.char.toString())
+        is SHIFT -> text("⇧")
+        is M3 -> text("M3")
+        is M4 -> text("M4")
+        is SPACE -> text(" ")
+        is BACKSPACE -> text("⇦")
+        is ENTER -> text("↵")
+    }
+
+    private fun styledKey(key: KeyType) =
         button{
             size(0, WRAP)
-            weight(1f)
+
+            when(key) {
+                is SPACE -> weight(3f)
+                else -> weight(1f)
+            }
 
             minimumHeight(dip(0))
             minimumWidth(dip(0))
@@ -32,22 +106,28 @@ class KeyboardView(val ctx: Context, val enterChar:(Char) -> Unit): RenderableVi
             minWidth(0)
 
             background(ctx.getDrawable(R.drawable.key_style))
-            padding(dip(6))
+            padding(dip(6), dip(12) )
             textSize(sip(22f))
 
             allCaps(false)
             typeface(ResourcesCompat.getFont(ctx, R.font.lin_biolinum_rah))
 
-            text(content.toString())
-            onClick { v -> onKeyClick(content) }
+            textBasedOnType(key)
+            onClick { v -> onKeyClick(key) }
         }
+
+    fun chosenLayer() = when{
+        state.isLayer1() -> Keys.layer1
+        state.isLayer2() -> Keys.layer2
+        else -> Keys.layer1
+    }
 
     override fun view() {
         linearLayout {
             size(FILL, WRAP)
             orientation(LinearLayout.VERTICAL)
 
-            Keys.layer1.map{ row ->
+            chosenLayer().map{ row ->
 
                 linearLayout{
                     size(FILL, WRAP)
