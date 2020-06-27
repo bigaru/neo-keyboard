@@ -1,6 +1,7 @@
 package `in`.abaddon.neokeyboard
 
 import android.content.Context
+import android.view.inputmethod.InputConnection
 import android.widget.LinearLayout
 import androidx.core.content.res.ResourcesCompat
 import trikita.anvil.DSL.*
@@ -24,12 +25,14 @@ SHIFT M3              SPACE   M4  ENTER
 */
 
 object Keys {
+    val lastRow = listOf(SHIFT, M3, SPACE , M4, ENTER)
+
     val layer1: List<List<KeyType>> = listOf(
         listOf('1',  '2',  '3',  '4',  '5',  '6',  '7',  '8',  '9',  '0',  '-').map{CHAR(it)},
         listOf('x',  'v',  'l',  'c',  'w',  'k',  'h',  'g',  'f',  'q',  'ß').map{CHAR(it)},
         listOf('u',  'i',  'a',  'e',  'o',  's',  'n',  'r',  't',  'd',  'y').map{CHAR(it)},
         listOf('ü',  'ö',  'ä',  'p',  'z',  'b',  'm',  ',',  '.',  'j').map{CHAR(it)} + listOf(BACKSPACE),
-        listOf(SHIFT, M3, SPACE , M4, ENTER)
+        lastRow
     )
 
     val layer2: List<List<KeyType>> = listOf(
@@ -37,7 +40,15 @@ object Keys {
         listOf('X',  'V',  'L',  'C',  'W',  'K',  'H',  'G',  'F',  'Q',  'ẞ').map{CHAR(it)},
         listOf('U',  'I',  'A',  'E',  'O',  'S',  'N',  'R',  'T',  'D',  'Y').map{CHAR(it)},
         listOf('Ü',  'Ö',  'Ä',  'P',  'Z',  'B',  'M',  '–',  '•',  'J').map{CHAR(it)} + listOf(BACKSPACE),
-        listOf(SHIFT, M3, SPACE , M4, ENTER)
+        lastRow
+    )
+
+    val layer3: List<List<KeyType>> = listOf(
+        listOf('¹',  '²',  '³',  '›',  '‹',  '¢',  '¥',  '‚',  '‘',  '’',  '-').map{CHAR(it)},
+        listOf('…',  '_',  '[',  ']',  '^',  '!',  '<',  '>',  '=',  '&',  'ſ').map{CHAR(it)},
+        listOf('\\',  '/',  '{',  '}',  '*', '?',  '(',  ')',  '-',  ':',  '@').map{CHAR(it)},
+        listOf('#',  '$',  '|', '~',  '`',  '+',  '%',  '"',  '\'',  ';').map{CHAR(it)} + listOf(BACKSPACE),
+        lastRow
     )
 }
 
@@ -55,7 +66,7 @@ data class State(
     fun isLayer6() = !shift.first && modifier3.first && modifier4.first
 }
 
-class KeyboardView(val ctx: Context, val enterChar:(Char) -> Unit): RenderableView(ctx) {
+class KeyboardView(val ctx: Context, val ic: InputConnection): RenderableView(ctx) {
     var state = State(Pair(false, false), Pair(false, false), Pair(false, false))
 
     fun resetNonPermas(){
@@ -67,17 +78,25 @@ class KeyboardView(val ctx: Context, val enterChar:(Char) -> Unit): RenderableVi
     fun onKeyClick(key: KeyType) {
         when(key) {
             is CHAR -> {
-                enterChar(key.char)
+                ic.commitText(key.char.toString(), 1)
                 resetNonPermas()
             }
 
             is SPACE -> {
-                enterChar(' ')
+                ic.commitText(" ", 1)
+                resetNonPermas()
+            }
+
+            is BACKSPACE -> {
+                ic.deleteSurroundingText(1, 0)
                 resetNonPermas()
             }
 
             is SHIFT ->
                 state = state.copy(shift = Pair(true, false))
+
+            is M3 ->
+                state = state.copy(modifier3 = Pair(true, false))
         }
     }
 
@@ -119,6 +138,7 @@ class KeyboardView(val ctx: Context, val enterChar:(Char) -> Unit): RenderableVi
     fun chosenLayer() = when{
         state.isLayer1() -> Keys.layer1
         state.isLayer2() -> Keys.layer2
+        state.isLayer3() -> Keys.layer3
         else -> Keys.layer1
     }
 
