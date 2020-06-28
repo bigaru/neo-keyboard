@@ -11,13 +11,24 @@ import trikita.anvil.DSL.*
 import trikita.anvil.RenderableView
 
 class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ctx) {
-    var state = State(Pair(false, false), Pair(false, false), Pair(false, false))
+    var modifierFlags = 0
     var editorInfo: EditorInfo? = null
 
     fun resetNonPermas(){
-        if (!state.shift.second) state = state.copy(shift = Pair(false, false))
-        if (!state.modifier3.second) state = state.copy(modifier3 = Pair(false, false))
-        if (!state.modifier4.second) state = state.copy(modifier4 = Pair(false, false))
+        modifierFlags = Modifier.resetModifiers(modifierFlags)
+    }
+
+    fun doubleTap(modifier: Int, modifierPerma: Int){
+        if(modifierFlags and modifier == modifier){
+            modifierFlags = modifierFlags and modifier.inv()
+            modifierFlags = modifierFlags or modifierPerma
+        }
+        else if(modifierFlags and modifierPerma == modifierPerma){
+            modifierFlags = modifierFlags and modifierPerma.inv()
+        }
+        else {
+            modifierFlags = modifierFlags or modifier
+        }
     }
 
     fun onKeyClick(key: KeyType) {
@@ -39,14 +50,17 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
                 resetNonPermas()
             }
 
-            is SHIFT ->
-                state = state.copy(shift = Pair(true, false))
+            is SHIFT -> {
+                doubleTap(Modifier.SHIFT, Modifier.SHIFT_PERMA)
+            }
 
-            is M3 ->
-                state = state.copy(modifier3 = Pair(true, false))
+            is M3 -> {
+                doubleTap(Modifier.MOD3, Modifier.MOD3_PERMA)
+            }
 
-            is M4 ->
-                state = state.copy(modifier4 = Pair(true, false))
+            is M4 -> {
+                doubleTap(Modifier.MOD4, Modifier.MOD4_PERMA)
+            }
 
             is ENTER ->
                 handleEnter()
@@ -110,13 +124,13 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
             onClick { v -> onKeyClick(key) }
         }
 
-    fun chosenLayer() = when{
-        state.isLayer1() -> Keys.layer1
-        state.isLayer2() -> Keys.layer2
-        state.isLayer3() -> Keys.layer3
-        state.isLayer4() -> Keys.layer4
-        state.isLayer5() -> Keys.layer5
-        state.isLayer6() -> Keys.layer6
+    fun chosenLayer()= when{
+        Modifier.isLayer6(modifierFlags) -> Keys.layer6
+        Modifier.isLayer5(modifierFlags) -> Keys.layer5
+        Modifier.isLayer4(modifierFlags) -> Keys.layer4
+        Modifier.isLayer3(modifierFlags) -> Keys.layer3
+        Modifier.isLayer2(modifierFlags) -> Keys.layer2
+        Modifier.isLayer1(modifierFlags) -> Keys.layer1
         else -> Keys.layer1
     }
 
