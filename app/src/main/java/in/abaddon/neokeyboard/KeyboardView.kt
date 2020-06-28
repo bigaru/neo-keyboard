@@ -15,6 +15,7 @@ object M4: KeyType()
 object SPACE: KeyType()
 object BACKSPACE: KeyType()
 object ENTER: KeyType()
+data class CONTROL(val command: String): KeyType()
 
 /*
 '1',  '2',  '3',  '4',  '5',        '6',  '7',  '8',  '9',  '0',  '-'
@@ -48,6 +49,30 @@ object Keys {
         listOf('…',  '_',  '[',  ']',  '^',  '!',  '<',  '>',  '=',  '&',  'ſ').map{CHAR(it)},
         listOf('\\',  '/',  '{',  '}',  '*', '?',  '(',  ')',  '-',  ':',  '@').map{CHAR(it)},
         listOf('#',  '$',  '|', '~',  '`',  '+',  '%',  '"',  '\'',  ';').map{CHAR(it)} + listOf(BACKSPACE),
+        lastRow
+    )
+
+    val layer4: List<List<KeyType>> = listOf(
+        listOf('ª',  'º',  '№',  '·',  '£',  '¤').map{CHAR(it)} + listOf(CONTROL("⇥")) + listOf('/',  '*',  '-').map{CHAR(it)},
+        listOf("⇞","⌫","⇡", "⌦", "⇟").map{CONTROL(it)} + listOf('¡', '7', '8', '9', '+', '−').map{CHAR(it)},
+        listOf("⇱","⇠","⇣", "⇢", "⇲").map{CONTROL(it)} + listOf('¿', '4', '5', '6', ',', '.').map{CHAR(it)},
+        listOf("⌧","⇥", "${9088.toChar()}", "↵", "↶").map{CONTROL(it)} + listOf(':', '1', '2', '3', ';').map{CHAR(it)},
+        lastRow
+    )
+
+    val layer5: List<List<KeyType>> = listOf(
+        listOf('₁',  '₂',  '₃',  '♀',  '♂',  '⚥',  'ϰ',  '⟨',  '⟩',  '₀',  '‑').map{CHAR(it)},
+        listOf('ξ',  'λ',  'χ',  'ω',  'κ',  'ψ',  'γ',  'φ',  'ϕ',  'ς').map{CHAR(it)},
+        listOf('ι',  'α',  'ε',  'ο', 'σ',  'ν',  'ρ',  'τ',  'δ',  'υ').map{CHAR(it)},
+        listOf('ϵ',  'η', 'π',  'ζ',  'β',  'μ', 'ϱ',  'ϑ',  'θ').map{CHAR(it)} + listOf(BACKSPACE),
+        lastRow
+    )
+
+    val layer6: List<List<KeyType>> = listOf(
+        listOf('¬',  '∨',  '∧',  '⊥',  '∡',  '∥',  '→',  '∞',  '∝',  '∅', '╌').map{CHAR(it)},
+        listOf('Ξ',  '√',  'Λ',  'ℂ',  'Ω',  '×',  'Ψ',  'Γ',  'Φ',  'ℚ',  '∘').map{CHAR(it)},
+        listOf('⊂',  '∫',  '∀',  '∃',  '∈',  'Σ',  'ℕ',  'ℝ',  '∂',  'Δ',  '∇').map{CHAR(it)},
+        listOf('∪',  '∩',  'ℵ',  'Π',  'ℤ',  '⇐',  '⇔',  '⇒',  '↦',  'Θ').map{CHAR(it)} + listOf(BACKSPACE),
         lastRow
     )
 }
@@ -97,6 +122,9 @@ class KeyboardView(val ctx: Context, val ic: () -> InputConnection): RenderableV
 
             is M3 ->
                 state = state.copy(modifier3 = Pair(true, false))
+
+            is M4 ->
+                state = state.copy(modifier4 = Pair(true, false))
         }
     }
 
@@ -108,6 +136,8 @@ class KeyboardView(val ctx: Context, val ic: () -> InputConnection): RenderableV
         is SPACE -> text(" ")
         is BACKSPACE -> text("⇦")
         is ENTER -> text("↵")
+
+        is CONTROL -> text(key.command)
     }
 
     private fun styledKey(key: KeyType) =
@@ -127,12 +157,12 @@ class KeyboardView(val ctx: Context, val ic: () -> InputConnection): RenderableV
             when(key) {
                 is SPACE -> background(ctx.getDrawable(R.drawable.bordered_key))
                 is CHAR -> background(ctx.getDrawable(R.drawable.bordered_key))
+                is CONTROL -> background(ctx.getDrawable(R.drawable.bordered_key))
                 else -> background(ctx.getDrawable(R.drawable.borderless_key))
             }
 
             textColor(ctx.getColor(R.color.white))
-            padding(dip(6), dip(10) )
-            textSize(sip(24f))
+            textSize(sip(22f))
 
             allCaps(false)
             typeface(ResourcesCompat.getFont(ctx, R.font.lin_biolinum_rah))
@@ -145,6 +175,9 @@ class KeyboardView(val ctx: Context, val ic: () -> InputConnection): RenderableV
         state.isLayer1() -> Keys.layer1
         state.isLayer2() -> Keys.layer2
         state.isLayer3() -> Keys.layer3
+        state.isLayer4() -> Keys.layer4
+        state.isLayer5() -> Keys.layer5
+        state.isLayer6() -> Keys.layer6
         else -> Keys.layer1
     }
 
@@ -152,6 +185,8 @@ class KeyboardView(val ctx: Context, val ic: () -> InputConnection): RenderableV
         linearLayout {
             size(FILL, WRAP)
             orientation(LinearLayout.VERTICAL)
+            padding(dip(2))
+            backgroundColor(ctx.getColor(R.color.darkGrey))
 
             chosenLayer().map{ row ->
 
