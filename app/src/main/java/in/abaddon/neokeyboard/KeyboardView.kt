@@ -1,6 +1,7 @@
 package `in`.abaddon.neokeyboard
 
 import android.content.Context
+import android.view.HapticFeedbackConstants
 import android.view.inputmethod.InputConnection
 import android.widget.LinearLayout
 import androidx.core.content.res.ResourcesCompat
@@ -101,6 +102,8 @@ class KeyboardView(val ctx: Context, val ic: () -> InputConnection): RenderableV
     }
 
     fun onKeyClick(key: KeyType) {
+        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+
         when(key) {
             is CHAR -> {
                 ic().commitText(key.char.toString(), 1)
