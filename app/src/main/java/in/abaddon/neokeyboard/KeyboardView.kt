@@ -57,7 +57,7 @@ object Keys {
         listOf('ª',  'º',  '№',  '·',  '£',  '¤').map{CHAR(it)} + listOf(CONTROL("⇥")) + listOf('/',  '*',  '-').map{CHAR(it)},
         listOf("⇞","⌫","⇡", "⌦", "⇟").map{CONTROL(it)} + listOf('¡', '7', '8', '9', '+', '−').map{CHAR(it)},
         listOf("⇱","⇠","⇣", "⇢", "⇲").map{CONTROL(it)} + listOf('¿', '4', '5', '6', ',', '.').map{CHAR(it)},
-        listOf("⌧","⇥", "${9088.toChar()}", "↵", "↶").map{CONTROL(it)} + listOf(':', '1', '2', '3', ';').map{CHAR(it)},
+        listOf("⌧","⇥", "${9088.toChar()}", "↵", "↶").map{CONTROL(it)} + listOf(':', '1', '2', '3', ';').map{CHAR(it)} + listOf(BACKSPACE),
         lastRow
     )
 
