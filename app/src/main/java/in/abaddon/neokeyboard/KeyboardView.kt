@@ -45,6 +45,9 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
             is M3 ->
                 state = state.copy(modifier3 = Pair(true, false))
 
+            is M4 ->
+                state = state.copy(modifier4 = Pair(true, false))
+
             is ENTER ->
                 handleEnter()
         }
