@@ -9,7 +9,8 @@ SHIFT M3              SPACE   M4  ENTER
 */
 
 object Keys {
-    val lastRow = listOf(SHIFT, M3, SPACE , M4, ENTER)
+    val BACKSPACE = MODIFIER(MOD.BACKSPACE)
+    val lastRow = listOf(MODIFIER(MOD.SHIFT), MODIFIER(MOD.M3), CHAR(' ') , MODIFIER(MOD.M4), MODIFIER(MOD.ENTER))
 
     val layer1: List<List<KeyType>> = listOf(
         listOf('1',  '2',  '3',  '4',  '5',  '6',  '7',  '8',  '9',  '0',  '-').map{CHAR(it)},
@@ -36,10 +37,10 @@ object Keys {
     )
 
     val layer4: List<List<KeyType>> = listOf(
-        listOf('ª',  'º',  '№',  '·',  '£',  '¤').map{CHAR(it)} + listOf(CONTROL("⇥")) + listOf('/',  '*',  '-').map{CHAR(it)},
-        listOf("⇞","⌫","⇡", "⌦", "⇟").map{CONTROL(it)} + listOf('¡', '7', '8', '9', '+', '−').map{CHAR(it)},
-        listOf("⇱","⇠","⇣", "⇢", "⇲").map{CONTROL(it)} + listOf('¿', '4', '5', '6', ',', '.').map{CHAR(it)},
-        listOf("⌧","⇥", "${9088.toChar()}", "↵", "↶").map{CONTROL(it)} + listOf(':', '1', '2', '3', ';').map{CHAR(it)} + listOf(BACKSPACE),
+        listOf('ª',  'º',  '№',  '·',  '£',  '¤').map{CHAR(it)} + listOf(CONTROL('⇥')) + listOf('/',  '*',  '-').map{CHAR(it)},
+        listOf('⇞','⌫','⇡', '⌦', '⇟').map{CONTROL(it)} + listOf('¡', '7', '8', '9', '+', '−').map{CHAR(it)},
+        listOf('⇱','⇠','⇣', '⇢', '⇲').map{CONTROL(it)} + listOf('¿', '4', '5', '6', ',', '.').map{CHAR(it)},
+        listOf('⌧','⇥', 9088.toChar(), '↵', '↶').map{CONTROL(it)} + listOf(':', '1', '2', '3', ';').map{CHAR(it)} + listOf(BACKSPACE),
         lastRow
     )
 

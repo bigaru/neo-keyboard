@@ -1,8 +1,10 @@
 package `in`.abaddon.neokeyboard
 
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
+import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.widget.LinearLayout
@@ -20,34 +22,34 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
         if (state.MOD4 == ModifierState.SET_ONE_TIME) state.MOD4 = ModifierState.UNSET
     }
 
-    fun onKeyClick(key: KeyType) {
+    val onKeyClick: (KeyType) -> ((View) -> Unit) = {key: KeyType -> { v:View ->
         performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
 
-        when(key) {
-            is CHAR -> {
-                ic.commitText(key.char.toString(), 1)
-                resetNonPermas()
-            }
-
-            is SPACE -> {
+        when{
+            key == CHAR(' ') -> {
                 ic.commitText(" ", 1)
                 resetNonPermas()
             }
 
-            is BACKSPACE -> {
+            key is CHAR -> {
+                ic.commitText(key.char.toString(), 1)
+                resetNonPermas()
+            }
+
+            key is MODIFIER && key.mod == MOD.BACKSPACE -> {
                 ic.deleteSurroundingText(1, 0)
                 resetNonPermas()
             }
 
-            is SHIFT -> state.SHIFT++
+            key is MODIFIER && key.mod == MOD.SHIFT -> state.SHIFT++
 
-            is M3 -> state.MOD3++
+            key is MODIFIER && key.mod == MOD.M3 -> state.MOD3++
 
-            is M4 -> state.MOD4++
+            key is MODIFIER && key.mod == MOD.M4-> state.MOD4++
 
-            is ENTER -> handleEnter()
+            key is MODIFIER && key.mod == MOD.ENTER -> handleEnter()
         }
-    }
+    }}
 
     private fun handleEnter(){
         if(editorInfo != null) {
@@ -63,48 +65,44 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
         }
     }
 
-    private fun textBasedOnType(key: KeyType) = when(key) {
-        is CHAR -> text(key.char.toString())
-        is SHIFT -> text("⇧")
-        is M3 -> text("M3")
-        is M4 -> text("M4")
-        is SPACE -> text(" ")
-        is BACKSPACE -> text("⇦")
-        is ENTER -> text("↵")
+    private fun keyBasedOnType(key: KeyType) {
+        val modifierBg = ctx.getDrawable(R.drawable.modifier_key)
+        val clickHandler = onKeyClick(key)
 
-        is CONTROL -> text(key.command)
+        when {
+            key is CHAR && key.char == ' ' ->  styledKey(key.char.toString(), clickHandler, layoutWeight = 3f)
+            key is CHAR ->  styledKey(key.char.toString(), clickHandler)
+            key is MODIFIER ->  styledKey(key.mod.text, clickHandler, modifierBg)
+            key is CONTROL -> styledKey(key.command.toString(), clickHandler)
+        }
     }
 
-    private fun styledKey(key: KeyType) =
+    private fun styledKey(
+        textContent: String,
+        clickHandler: (View) -> Unit,
+        btnBackground: Drawable? = ctx.getDrawable(R.drawable.main_key),
+        layoutWeight: Float = 1f
+    ){
         button{
             size(0, WRAP)
-
-            when(key) {
-                is SPACE -> weight(3f)
-                else -> weight(1f)
-            }
+            weight(layoutWeight)
 
             minimumHeight(dip(0))
             minimumWidth(dip(0))
             minHeight(0)
             minWidth(0)
 
-            when(key) {
-                is SPACE -> background(ctx.getDrawable(R.drawable.bordered_key))
-                is CHAR -> background(ctx.getDrawable(R.drawable.bordered_key))
-                is CONTROL -> background(ctx.getDrawable(R.drawable.bordered_key))
-                else -> background(ctx.getDrawable(R.drawable.borderless_key))
-            }
-
+            background(btnBackground)
             textColor(ctx.getColor(R.color.white))
             textSize(sip(22f))
 
             allCaps(false)
             typeface(ResourcesCompat.getFont(ctx, R.font.lin_biolinum_rah))
 
-            textBasedOnType(key)
-            onClick { v -> onKeyClick(key) }
+            text(textContent)
+            onClick(clickHandler)
         }
+    }
 
     fun chosenLayer()= when{
         state.isLayer1() -> Keys.layer1
@@ -129,7 +127,7 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
                     size(FILL, WRAP)
                     orientation(LinearLayout.HORIZONTAL)
 
-                    row.map(this::styledKey)
+                    row.map(this::keyBasedOnType)
                 }
 
             }

@@ -2,10 +2,13 @@ package `in`.abaddon.neokeyboard
 
 sealed class KeyType
 data class CHAR(val char: Char): KeyType()
-object SHIFT: KeyType()
-object M3: KeyType()
-object M4: KeyType()
-object SPACE: KeyType()
-object BACKSPACE: KeyType()
-object ENTER: KeyType()
-data class CONTROL(val command: String): KeyType()
+data class MODIFIER(val mod: MOD): KeyType()
+data class CONTROL(val command: Char): KeyType()
+
+enum class MOD(val text: String) {
+    SHIFT("⇧"),
+    M3("M3"),
+    M4("M4"),
+    ENTER("↵"),
+    BACKSPACE("⇦"),
+}
