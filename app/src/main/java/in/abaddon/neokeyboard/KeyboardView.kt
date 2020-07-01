@@ -11,24 +11,13 @@ import trikita.anvil.DSL.*
 import trikita.anvil.RenderableView
 
 class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ctx) {
-    var modifierFlags = 0
+    val state = State(ModifierState.UNSET, ModifierState.UNSET, ModifierState.UNSET)
     var editorInfo: EditorInfo? = null
 
-    fun resetNonPermas(){
-        modifierFlags = Modifier.resetModifiers(modifierFlags)
-    }
-
-    fun doubleTap(modifier: Int, modifierPerma: Int){
-        if(modifierFlags and modifier == modifier){
-            modifierFlags = modifierFlags and modifier.inv()
-            modifierFlags = modifierFlags or modifierPerma
-        }
-        else if(modifierFlags and modifierPerma == modifierPerma){
-            modifierFlags = modifierFlags and modifierPerma.inv()
-        }
-        else {
-            modifierFlags = modifierFlags or modifier
-        }
+    fun resetNonPermas() {
+        if (state.SHIFT == ModifierState.SET_ONE_TIME) state.SHIFT  = ModifierState.UNSET
+        if (state.MOD3 == ModifierState.SET_ONE_TIME) state.MOD3 = ModifierState.UNSET
+        if (state.MOD4 == ModifierState.SET_ONE_TIME) state.MOD4 = ModifierState.UNSET
     }
 
     fun onKeyClick(key: KeyType) {
@@ -50,20 +39,13 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
                 resetNonPermas()
             }
 
-            is SHIFT -> {
-                doubleTap(Modifier.SHIFT, Modifier.SHIFT_PERMA)
-            }
+            is SHIFT -> state.SHIFT++
 
-            is M3 -> {
-                doubleTap(Modifier.MOD3, Modifier.MOD3_PERMA)
-            }
+            is M3 -> state.MOD3++
 
-            is M4 -> {
-                doubleTap(Modifier.MOD4, Modifier.MOD4_PERMA)
-            }
+            is M4 -> state.MOD4++
 
-            is ENTER ->
-                handleEnter()
+            is ENTER -> handleEnter()
         }
     }
 
@@ -125,12 +107,12 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
         }
 
     fun chosenLayer()= when{
-        Modifier.isLayer6(modifierFlags) -> Keys.layer6
-        Modifier.isLayer5(modifierFlags) -> Keys.layer5
-        Modifier.isLayer4(modifierFlags) -> Keys.layer4
-        Modifier.isLayer3(modifierFlags) -> Keys.layer3
-        Modifier.isLayer2(modifierFlags) -> Keys.layer2
-        Modifier.isLayer1(modifierFlags) -> Keys.layer1
+        state.isLayer1() -> Keys.layer1
+        state.isLayer2() -> Keys.layer2
+        state.isLayer3() -> Keys.layer3
+        state.isLayer4() -> Keys.layer4
+        state.isLayer5() -> Keys.layer5
+        state.isLayer6() -> Keys.layer6
         else -> Keys.layer1
     }
 
