@@ -66,13 +66,12 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
     }
 
     private fun keyBasedOnType(key: KeyType) {
-        val modifierBg = ctx.getDrawable(R.drawable.modifier_key)
         val clickHandler = onKeyClick(key)
 
         when {
-            key is CHAR && key.char == ' ' ->  styledKey(key.char.toString(), clickHandler, layoutWeight = 3f)
+            key is CHAR && key.char == ' ' ->  styledKey(key.char.toString(), clickHandler, ctx.getDrawable(R.drawable.bordered_key), layoutWeight = 3f)
             key is CHAR ->  styledKey(key.char.toString(), clickHandler)
-            key is MODIFIER ->  styledKey(key.mod.text, clickHandler, modifierBg)
+            key is MODIFIER ->  styledKey(key.mod.text, clickHandler)
             key is CONTROL -> styledKey(key.command.toString(), clickHandler)
         }
     }
@@ -80,7 +79,7 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
     private fun styledKey(
         textContent: String,
         clickHandler: (View) -> Unit,
-        btnBackground: Drawable? = ctx.getDrawable(R.drawable.main_key),
+        btnBackground: Drawable? = ctx.getDrawable(R.drawable.borderless_key),
         layoutWeight: Float = 1f
     ){
         button{
@@ -94,10 +93,11 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
 
             background(btnBackground)
             textColor(ctx.getColor(R.color.white))
-            textSize(sip(22f))
+            textSize(sip(26f))
+            padding(dip(0), dip(6))
 
             allCaps(false)
-            typeface(ResourcesCompat.getFont(ctx, R.font.lin_biolinum_rah))
+            typeface(ResourcesCompat.getFont(ctx, R.font.dejavu_light))
 
             text(textContent)
             onClick(clickHandler)
