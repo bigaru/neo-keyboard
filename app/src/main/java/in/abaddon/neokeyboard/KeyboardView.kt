@@ -65,13 +65,29 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
         }
     }
 
+    private fun getTextColorForMod(key: MODIFIER): Int {
+        if(key.mod == MOD.SHIFT && state.SHIFT.isSet()) return ctx.getColor(R.color.lightAccent)
+        if(key.mod == MOD.M3 && state.MOD3.isSet()) return ctx.getColor(R.color.lightAccent)
+        if(key.mod == MOD.M4 && state.MOD4.isSet()) return ctx.getColor(R.color.lightAccent)
+        return ctx.getColor(R.color.white)
+    }
+
+    private fun getBackgroundForMod(key: MODIFIER): Drawable? {
+        if(key.mod == MOD.SHIFT && state.SHIFT == ModifierState.SET_PERMA) return ctx.getDrawable(R.drawable.active_bordered_bg)
+        if(key.mod == MOD.M3 && state.MOD3 == ModifierState.SET_PERMA) return ctx.getDrawable(R.drawable.active_bordered_bg)
+        if(key.mod == MOD.M4 && state.MOD4 == ModifierState.SET_PERMA) return ctx.getDrawable(R.drawable.active_bordered_bg)
+        return ctx.getDrawable(R.drawable.borderless_key)
+    }
+
     private fun keyBasedOnType(key: KeyType) {
         val clickHandler = onKeyClick(key)
 
         when {
-            key is CHAR && key.char == ' ' ->  styledKey(key.char.toString(), clickHandler, ctx.getDrawable(R.drawable.bordered_key), layoutWeight = 3f)
+            key is CHAR && key.char == ' ' ->  styledKey(key.char.toString(), clickHandler, btnBackground =  ctx.getDrawable(R.drawable.bordered_key), layoutWeight = 3f)
             key is CHAR ->  styledKey(key.char.toString(), clickHandler)
-            key is MODIFIER ->  styledKey(key.mod.text, clickHandler)
+            key is MODIFIER -> {
+                styledKey(key.mod.text, clickHandler, fontColor = getTextColorForMod(key), btnBackground = getBackgroundForMod(key))
+            }
             key is CONTROL -> styledKey(key.command.toString(), clickHandler)
         }
     }
@@ -79,6 +95,7 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
     private fun styledKey(
         textContent: String,
         clickHandler: (View) -> Unit,
+        fontColor: Int = ctx.getColor(R.color.white),
         btnBackground: Drawable? = ctx.getDrawable(R.drawable.borderless_key),
         layoutWeight: Float = 1f
     ){
@@ -92,7 +109,7 @@ class KeyboardView(val ctx: Context, var ic: InputConnection): RenderableView(ct
             minWidth(0)
 
             background(btnBackground)
-            textColor(ctx.getColor(R.color.white))
+            textColor(fontColor)
             textSize(sip(26f))
             padding(dip(0), dip(6))
 
